@@ -13,14 +13,11 @@ import {
 hubspot.extend(({ actions }) => (
   <Extension
     fetchProperties={actions.fetchCrmObjectProperties}
-    sendAlert={actions.addAlert}
-    runServerless={actions.runServerlessFunction}
   />
 ));
 
-const Extension = ({ fetchProperties, sendAlert, runServerless }) => {
+const Extension = ({ fetchProperties }) => {
   const [data, setData] = useState({ name: '', id: '', email: '', loading: true });
-  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     fetchProperties(['firstname', 'lastname', 'hs_object_id', 'email'])
@@ -36,61 +33,34 @@ const Extension = ({ fetchProperties, sendAlert, runServerless }) => {
       .catch(() => setData((prev) => ({ ...prev, loading: false })));
   }, [fetchProperties]);
 
-  const triggerN8n = async () => {
-    setSending(true);
-
-    try {
-      // Chiamata alla serverless function invece che direttamente a n8n
-      const response = await runServerless({
-        name: 'sendToN8n',
-        parameters: {
-          contactId: data.id,
-          contactName: data.name,
-          contactEmail: data.email
-        }
-      });
-
-      if (response.success) {
-        sendAlert({
-          title: '✅ Successo!',
-          message: 'Dati inviati correttamente a n8n.',
-          type: 'success'
-        });
-      } else {
-        sendAlert({
-          title: '⚠️ Errore n8n',
-          message: response.message || 'Errore durante l\'invio',
-          type: 'danger'
-        });
-      }
-    } catch (error) {
-      console.error('Errore serverless function:', error);
-      sendAlert({
-        title: '❌ Errore',
-        message: 'Impossibile comunicare con n8n. Verifica la configurazione.',
-        type: 'warning'
-      });
-    } finally {
-      setSending(false);
-    }
-  };
-
   if (data.loading) return <LoadingSpinner label="Inizializzazione..." />;
+
+  // Costruiamo il link esattamente come se fosse da incollare nel browser
+  const baseUrl = 'https://nutellone.app.n8n.cloud/webhook/9bbc2de1-a849-4309-a635-1dd7c0d0cb51';
+  const params = new URLSearchParams({
+    contactId: data.id,
+    contactName: data.name,
+    contactEmail: data.email,
+    source: 'hubspot_link_click'
+  }).toString();
+
+  const targetUrl = `${baseUrl}?${params}`;
 
   return (
     <Box>
-      <Heading>HubSpot ➔ n8n</Heading>
+      <Heading>HubSpot ➔ n8n [LINK v2 - CACHE BUST]</Heading>
       <Text>Invio dati di: <Text format={{ fontWeight: 'bold' }}>{data.name}</Text></Text>
 
       <Divider />
 
       <Flex direction="column" gap="medium" align="start" marginTop="medium">
+        <Text>Clicca qui sotto per inviare i dati aprendo una nuova scheda sicura:</Text>
         <Button
           variant="primary"
-          onClick={triggerN8n}
-          loading={sending}
+          href={targetUrl}
+          external={true}
         >
-          {sending ? 'Comunicazione...' : 'Invia a n8n'}
+          Apri collegamento n8n 🚀
         </Button>
       </Flex>
     </Box>

@@ -48,19 +48,19 @@ const Extension = ({ fetchProperties }) => {
 
   return (
     <Box>
-      <Heading>HubSpot ➔ n8n [LINK v2 - CACHE BUST]</Heading>
-      <Text>Invio dati di: <Text format={{ fontWeight: 'bold' }}>{data.name}</Text></Text>
+      <Heading>Integrazione n8n</Heading>
+      <Text>Contatto: <Text format={{ fontWeight: 'bold' }}>{data.name}</Text></Text>
 
       <Divider />
 
       <Flex direction="column" gap="medium" align="start" marginTop="medium">
-        <Text>Clicca qui sotto per inviare i dati aprendo una nuova scheda sicura:</Text>
+        <Text>Clicca per avviare il workflow su n8n:</Text>
         <Button
           variant="primary"
           href={targetUrl}
           external={true}
         >
-          Apri collegamento n8n 🚀
+          Invia Dati a n8n 🚀
         </Button>
       </Flex>
     </Box>

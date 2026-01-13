@@ -1,0 +1,12 @@
+{
+  "uid": "test_app_card",
+  "type": "card",
+  "config": {
+    "name": "New Card",
+    "location": "crm.record.sidebar",
+    "entrypoint": "/app/cards/NewCard.tsx",
+    "objectTypes": [
+      "contacts"
+    ]
+  }
+}

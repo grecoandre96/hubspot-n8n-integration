@@ -1,0 +1,12 @@
+{
+    "uid": "test_app_sendToN8n",
+    "type": "function",
+    "config": {
+        "runtime": "nodejs18.x",
+        "version": "1.0",
+        "environment": {},
+        "secrets": [
+            "N8N_WEBHOOK_URL"
+        ]
+    }
+}

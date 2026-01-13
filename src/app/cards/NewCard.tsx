@@ -14,10 +14,11 @@ hubspot.extend(({ actions }) => (
   <Extension
     fetchProperties={actions.fetchCrmObjectProperties}
     sendAlert={actions.addAlert}
+    runServerless={actions.runServerlessFunction}
   />
 ));
 
-const Extension = ({ fetchProperties, sendAlert }) => {
+const Extension = ({ fetchProperties, sendAlert, runServerless }) => {
   const [data, setData] = useState({ name: '', id: '', email: '', loading: true });
   const [sending, setSending] = useState(false);
 
@@ -37,37 +38,36 @@ const Extension = ({ fetchProperties, sendAlert }) => {
 
   const triggerN8n = async () => {
     setSending(true);
-    const WEBHOOK_URL = 'https://nutellone.app.n8n.cloud/webhook-test/9bbc2de1-a849-4309-a635-1dd7c0d0cb51';
 
     try {
-      // Usiamo JSON.stringify per essere sicuri che n8n accetti il formato (evita errore 400)
-      const response = await hubspot.fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      // Chiamata alla serverless function invece che direttamente a n8n
+      const response = await runServerless({
+        name: 'sendToN8n',
+        parameters: {
           contactId: data.id,
           contactName: data.name,
-          contactEmail: data.email,
-          timestamp: new Date().toISOString()
-        })
+          contactEmail: data.email
+        }
       });
 
-      if (response.ok) {
+      if (response.success) {
         sendAlert({
-          title: 'Grande!',
-          message: 'Dati ricevuti da n8n correttamente.',
+          title: '✅ Successo!',
+          message: 'Dati inviati correttamente a n8n.',
           type: 'success'
         });
       } else {
-        // Se n8n dà ancora errore, leggiamo il motivo
-        sendAlert({ title: 'Errore n8n', message: `Stato: ${response.status}`, type: 'danger' });
+        sendAlert({
+          title: '⚠️ Errore n8n',
+          message: response.message || 'Errore durante l\'invio',
+          type: 'danger'
+        });
       }
     } catch (error) {
+      console.error('Errore serverless function:', error);
       sendAlert({
-        title: 'Attenzione',
-        message: 'Controlla che il nodo Webhook su n8n sia in modalità "Execute Workflow".',
+        title: '❌ Errore',
+        message: 'Impossibile comunicare con n8n. Verifica la configurazione.',
         type: 'warning'
       });
     } finally {
